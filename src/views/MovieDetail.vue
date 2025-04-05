@@ -33,7 +33,7 @@
 
       <!-- 🎬 电影信息卡片 -->
       <div class="card movie-info">
-        <img :src="`/api/image-proxy/?url=${encodeURIComponent(movie.cover)}`" class="cover" />
+        <img :src="`http://localhost:8000/api/image-proxy/?url=${encodeURIComponent(movie.cover)}`" class="cover" />
         <div class="info">
           <div class="title-row">
           <h2>{{ movie.title }}</h2>
@@ -115,7 +115,7 @@ const isFavorited = ref(false)
 
 const toggleFavorite = async () => {
   try {
-    const res = await axios.post('/api/movies/favorite/', { id: route.params.id })
+    const res = await axios.post('http://localhost:8000/api/movies/favorite/', { id: route.params.id })
     isFavorited.value = res.data.status === 'added'
   } catch (err) {
     console.error('收藏失败：', err)
@@ -138,7 +138,7 @@ const loadComments = async () => {
   if (loadingMore.value || noMore.value) return
   loadingMore.value = true
   try {
-    const res = await axios.get('/api/movies/comments/', {
+    const res = await axios.get('http://localhost:8000/api/movies/comments/', {
       params: {
         id: route.params.id,
         start: start.value,
@@ -161,10 +161,13 @@ const loadComments = async () => {
 onMounted(async () => {
   const movieId = route.params.id
   try {
-    const res = await axios.get(`/api/movies/detail/?id=${movieId}`)
+    console.log('详情页加载', route.params.id)
+    const res = await axios.get(`http://localhost:8000/api/movies/detail/?id=${movieId}`)
+
+    console.log('返回数据', res.data)
     movie.value = res.data
     wordcloudSrc.value = `/static/wordclouds/${movieId}.png`
-
+    
     const dist = res.data.rating_dist || { "1": 0, "2": 0, "3": 0, "4": 0, "5": 0 }
     chartOptions.value = {
   title: { text: '', left: 'center' },

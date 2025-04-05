@@ -10,7 +10,12 @@ export default defineConfig({
     fs: {
       strict: false
     },
-    // ✅ history fallback 设置
-    historyApiFallback: true
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',  // 你 Django 的地址
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, '')
+      }
+    }
   }
 })

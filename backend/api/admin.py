@@ -1,4 +1,6 @@
 from django.contrib import admin
-from .models import Movie
+from .models import UserProfile
 
-admin.site.register(Movie)
+@admin.register(UserProfile)
+class UserProfileAdmin(admin.ModelAdmin):
+    list_display = ('user', 'avatar', 'bio')

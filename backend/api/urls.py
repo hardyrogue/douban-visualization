@@ -1,11 +1,14 @@
 from django.urls import path
-from .views import search_movies
 from . import views
 
 urlpatterns = [
     path('movies/search/', views.search_movies),
-    path('movies/detail/', views.movie_detail), 
+    path('movies/detail/', views.movie_detail),
     path('movies/comments/', views.movie_comments),
-    path('image-proxy/', views.image_proxy),
-    path('favorite/', views.toggle_favorite),
+    path('movies/favorite/', views.toggle_favorite),
+
+    # 登录相关接口（统一加上 auth/）
+    path('auth/login/', views.login_view),
+    path('auth/logout/', views.logout_view),
+    path('auth/user/', views.current_user),
 ]

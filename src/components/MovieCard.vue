@@ -1,11 +1,12 @@
 <template>
   <el-card class="movie-card clickable" shadow="hover" @click="goDetail">
     <img
-      :src="`/api/image-proxy/?url=${encodeURIComponent(movie.cover)}`"
-      @error="e => e.target.src = defaultCover"
-      class="cover"
-      alt="movie cover"
-    />
+  :src="movie.cover ? `http://localhost:8000/api/image-proxy/?url=${encodeURIComponent(movie.cover)}` : defaultCover"
+  @error="e => e.target.src = defaultCover"
+  class="cover"
+/>
+
+
     <div class="info">
       <h3 class="title">{{ movie.title }}</h3>
       <p>年份：{{ movie.year }}</p>
@@ -44,6 +45,7 @@ const defaultCover = 'https://via.placeholder.com/200x300?text=No+Image'  // ✅
   border-radius: 6px;
   margin-bottom: 10px;
 }
+
 .info {
   text-align: left;
 }
@@ -59,13 +61,7 @@ const defaultCover = 'https://via.placeholder.com/200x300?text=No+Image'  // ✅
 .clickable:hover {
   transform: translateY(-2px);
 }
-.cover {
-  width: 100%;
-  height: 280px;
-  object-fit: cover;
-  border-radius: 6px;
-  margin-bottom: 10px;
-}
+
 .subtitle {
   font-size: 13px;
   color: #999;
