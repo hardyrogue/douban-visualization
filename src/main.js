@@ -22,6 +22,10 @@ import {
   LegendComponent,
   GridComponent
 } from 'echarts/components'
+import { fetchUserInfo } from './composables/useUserInfo'
+
+// 登录成功后调用
+await fetchUserInfo()
 
 use([
   CanvasRenderer,

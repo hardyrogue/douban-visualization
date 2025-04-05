@@ -27,7 +27,9 @@
 
           <el-button type="warning" class="login-btn" @click="handleLogin" round block>
             登录
-          </el-button><p class="link-tip">还没有账号？<router-link to="/register">立即注册</router-link></p>
+          </el-button>
+
+          <p class="link-tip">还没有账号？<router-link to="/register">立即注册</router-link></p>
         </el-form>
       </div>
     </div>
@@ -38,33 +40,39 @@
 import { reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
+import { User, Lock } from '@element-plus/icons-vue'
 import axios from '@/services/axios'
+
 const router = useRouter()
 const formRef = ref(null)
 const form = reactive({ username: '', password: '' })
 
-
 const handleLogin = async () => {
   try {
-    const res = await axios.post('/auth/login/', {
+    // 1. 登录
+    await axios.post('/auth/login/', {
       username: form.username,
       password: form.password
     })
 
-    const { token, username, role } = res.data
-    localStorage.setItem('token', token)
-    localStorage.setItem('username', username)
-    localStorage.setItem('role', role || 'user')  // 后端返回了 admin/user
+    // 2. 获取当前用户信息
+    const res = await axios.get('/auth/user/')
+    const user = res.data
+
+    // 3. 存储信息
+    localStorage.setItem('token', 'session')  // ✅ cookie模式可写死
+    localStorage.setItem('username', user.username)
+    localStorage.setItem('role', user.is_staff ? 'admin' : 'user')
+    if (user.avatar) localStorage.setItem('avatar', user.avatar)
+    if (user.bio) localStorage.setItem('bio', user.bio)
 
     ElMessage.success('登录成功')
     router.push('/home')
   } catch (err) {
     console.error('登录失败:', err)
-    ElMessage.error(err.response?.data?.error || '用户名或密码错误')
+    ElMessage.error(err?.response?.data?.error || '用户名或密码错误')
   }
 }
-
-
 </script>
 
 <style scoped>
@@ -99,5 +107,10 @@ const handleLogin = async () => {
 }
 .login-btn {
   margin-top: 10px;
+}
+.link-tip {
+  margin-top: 1rem;
+  text-align: center;
+  font-size: 14px;
 }
 </style>

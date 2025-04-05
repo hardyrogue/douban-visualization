@@ -34,7 +34,13 @@ const routes = [
   {
     path: '/register',
     component: Register 
-  }
+  },
+  {
+    path: '/profile',
+    name: 'UserProfile',
+    component: () => import('@/views/UserProfile.vue'),  // 路由到个人中心页面
+  },
+  
 ]
 
 const router = createRouter({

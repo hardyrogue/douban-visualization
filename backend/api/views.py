@@ -178,6 +178,10 @@ def logout_view(request):
     return JsonResponse({'message': '已退出登录'})
 
 
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_GET
+
 @require_GET
 def current_user(request):
     user = request.user
@@ -185,17 +189,21 @@ def current_user(request):
         return JsonResponse({'error': '未登录'}, status=401)
 
     try:
-        profile = user.userprofile  # ⬅ 通过一对一反向访问
+        profile = user.userprofile  # 如果有绑定 UserProfile
         return JsonResponse({
-            'id': user.id,
             'username': user.username,
-            'is_staff': user.is_staff,
-            'is_superuser': user.is_superuser,
-            'avatar': profile.avatar,
-            'bio': profile.bio,
+            'avatar': profile.avatar if profile.avatar else '',
+            'bio': profile.bio if profile.bio else '',
+            'role': 'admin' if user.is_staff else 'user',
         })
-    except UserProfile.DoesNotExist:
-        return JsonResponse({'error': '该用户没有资料'}, status=404)
+    except Exception:
+        return JsonResponse({
+            'username': user.username,
+            'avatar': '',
+            'bio': '',
+            'role': 'admin' if user.is_staff else 'user',
+        })
+
 
 
 @csrf_exempt
