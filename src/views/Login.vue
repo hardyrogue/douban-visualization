@@ -27,7 +27,7 @@
 
           <el-button type="warning" class="login-btn" @click="handleLogin" round block>
             登录
-          </el-button>
+          </el-button><p class="link-tip">还没有账号？<router-link to="/register">立即注册</router-link></p>
         </el-form>
       </div>
     </div>
@@ -37,28 +37,34 @@
 <script setup>
 import { reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
-import { User, Lock } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
-
+import axios from '@/services/axios'
 const router = useRouter()
 const formRef = ref(null)
 const form = reactive({ username: '', password: '' })
 
-const handleLogin = () => {
-  if (form.username === 'admin' && form.password === '123456') {
-    localStorage.setItem('token', 'mock-token')
-    localStorage.setItem('role', 'admin')
-    ElMessage.success('管理员登录成功')
+
+const handleLogin = async () => {
+  try {
+    const res = await axios.post('/auth/login/', {
+      username: form.username,
+      password: form.password
+    })
+
+    const { token, username, role } = res.data
+    localStorage.setItem('token', token)
+    localStorage.setItem('username', username)
+    localStorage.setItem('role', role || 'user')  // 后端返回了 admin/user
+
+    ElMessage.success('登录成功')
     router.push('/home')
-  } else if (form.username === 'user' && form.password === '123456') {
-    localStorage.setItem('token', 'mock-token')
-    localStorage.setItem('role', 'user')
-    ElMessage.success('用户登录成功')
-    router.push('/home')
-  } else {
-    ElMessage.error('用户名或密码错误')
+  } catch (err) {
+    console.error('登录失败:', err)
+    ElMessage.error(err.response?.data?.error || '用户名或密码错误')
   }
 }
+
+
 </script>
 
 <style scoped>

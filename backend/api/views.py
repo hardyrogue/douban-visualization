@@ -16,6 +16,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from .models import UserProfile
+from django.contrib.auth.models import User
 @require_GET
 def search_movies(request):
     keyword = request.GET.get('q', '').strip()
@@ -144,21 +145,31 @@ def toggle_favorite(request):
 
 
 @csrf_exempt
+# views.py 登录接口
+@csrf_exempt
+@require_POST
 def login_view(request):
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            username = data.get('username')
-            password = data.get('password')
-            user = authenticate(request, username=username, password=password)
-            if user:
-                login(request, user)
-                return JsonResponse({'message': '登录成功', 'username': user.username})
-            else:
-                return JsonResponse({'error': '用户名或密码错误'}, status=401)
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=500)
-    return JsonResponse({'error': '仅支持 POST'}, status=405)
+    try:
+        data = json.loads(request.body)
+        username = data.get('username')
+        password = data.get('password')
+        user = authenticate(request, username=username, password=password)
+        if user:
+            login(request, user)
+            return JsonResponse({
+                'message': '登录成功',
+                'username': user.username,
+                'token': 'mock-token',  # ✅ 可换成 JWT
+                'user': {
+                    'username': user.username,
+                    'role': 'user'  # 或从数据库判断角色字段
+                }
+            })
+        else:
+            return JsonResponse({'error': '用户名或密码错误'}, status=401)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
 
 
 @csrf_exempt
@@ -185,3 +196,29 @@ def current_user(request):
         })
     except UserProfile.DoesNotExist:
         return JsonResponse({'error': '该用户没有资料'}, status=404)
+
+
+@csrf_exempt
+@require_POST
+def register_view(request):
+    import json
+    try:
+        data = json.loads(request.body)
+        username = data.get('username')
+        password = data.get('password')
+
+        if not username or not password:
+            return JsonResponse({'error': '用户名和密码不能为空'}, status=400)
+
+        if User.objects.filter(username=username).exists():
+            return JsonResponse({'error': '用户名已存在'}, status=409)
+
+        user = User.objects.create_user(username=username, password=password)
+        return JsonResponse({
+            'message': '注册成功并已登录',
+            'username': user.username,
+            'token': 'mock-token',  # 或你用 JWT 的 token
+            'role': 'user'
+        })
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)

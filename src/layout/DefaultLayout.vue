@@ -34,8 +34,11 @@
         </div>
         <el-dropdown>
           <span class="user">
-            <el-avatar :size="30" src="https://i.pravatar.cc/100?img=3" /> 管理员
+            <el-avatar :size="30" src="https://i.pravatar.cc/100?img=3" />
+            {{ typeof window !== 'undefined' ? localStorage.getItem('username') || '游客' : '游客' }}
           </span>
+
+          
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item @click="logout">退出登录</el-dropdown-item>
@@ -56,6 +59,11 @@
 import { useRoute, useRouter } from 'vue-router'
 import { computed } from 'vue'
 
+// 获取用户角色（安全方式）
+const safeGetItem = (key, fallback = '') => {
+  return typeof window !== 'undefined' ? localStorage.getItem(key) || fallback : fallback
+}
+
 const router = useRouter()
 const route = useRoute()
 
@@ -67,18 +75,22 @@ const allMenus = [
   { path: '/favorites', name: '我的收藏' }
 ]
 
-const userRole = localStorage.getItem('role') || 'admin'  // 模拟用户角色
+const userRole = safeGetItem('role', 'admin')  // ⬅️ 安全获取角色
 const menus = allMenus.filter(item => !item.roles || item.roles.includes(userRole))
 
 const currentTitle = computed(() => {
   const current = menus.find(m => m.path === route.path)
   return current ? current.name : ''
 })
+
 const logout = () => {
-  localStorage.removeItem('token')
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('token')
+    localStorage.removeItem('username')
+    localStorage.removeItem('role')
+  }
   router.push('/login')
 }
-
 </script>
 
 

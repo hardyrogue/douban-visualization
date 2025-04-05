@@ -3,7 +3,7 @@ import Login from '../views/Login.vue'
 import Home from '../views/Home.vue'
 import Dashboard from '../views/Dashboard.vue'
 import MyFavorites from '../views/MyFavorites.vue'
-
+import Register from '../views/Register.vue'
 const routes = [
   {
     path: '/',
@@ -31,6 +31,10 @@ const routes = [
     component: MyFavorites,
     meta: { requiresAuth: true }, // ✅ 我的收藏需登录
   },
+  {
+    path: '/register',
+    component: Register 
+  }
 ]
 
 const router = createRouter({
