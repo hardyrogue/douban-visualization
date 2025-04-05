@@ -20,6 +20,6 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
     bio = models.TextField(blank=True, null=True)
-
+    role = models.CharField(max_length=10, choices=[('user', '普通用户'), ('admin', '管理员')], default='user')
     def __str__(self):
         return f"{self.user.username} 的资料"

@@ -83,6 +83,7 @@ const fetchUserInfo = async () => {
     const res = await axios.get('/auth/user/')
     console.log('获取用户信息成功', res.data)  // 👈 看看有无 avatar、bio
     user.value = res.data
+    localStorage.setItem('role', res.data.role || 'user')
   } catch (err) {
     console.error('获取用户信息失败', err)
     router.push('/login')
@@ -112,8 +113,10 @@ onUnmounted(() => {
 const allMenus = [
   { path: '/home', name: '主页' },
   { path: '/favorites', name: '我的收藏' },
-  { path: '/profile', name: '个人中心' },  
+  { path: '/profile', name: '个人中心' },
+  { path: '/users', name: '用户管理', roles: ['admin'] },  // ✅ 只给 admin 看见
 ]
+
 
 const userRole = localStorage.getItem('role') || 'user'
 const menus = allMenus.filter(item => !item.roles || item.roles.includes(userRole))

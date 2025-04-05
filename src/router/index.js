@@ -29,7 +29,13 @@ const routes = [
   {
     path: '/register',
     component: Register,
+  },
+  {
+    path: '/users',
+    name: '用户管理',
+    component: () => import('@/views/UserList.vue')
   }
+  
 ]
 
 const router = createRouter({

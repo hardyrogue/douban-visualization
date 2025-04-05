@@ -22,10 +22,6 @@
           <p class="rating">评分：{{ movie.rating || '暂无评分' }}</p>
         </div>
       </div>
-
-      <div v-if="favorites.length === 0" class="empty">
-        暂无收藏内容
-      </div>
     </div>
   </div>
 </template>

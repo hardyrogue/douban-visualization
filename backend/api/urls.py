@@ -14,7 +14,7 @@ urlpatterns = [
     path('auth/logout/', views.logout_view),
     path('auth/user/', views.current_user), 
     path('auth/register/', views.register_view),
-
-
+    path('users/', views.user_view), 
+    path('users/<int:user_id>/', views.handle_user),
     path('auth/profile/update/', ProfileUpdateView.as_view(), name='profile_update'),
 ]

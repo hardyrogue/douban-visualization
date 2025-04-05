@@ -1,13 +1,12 @@
 from pathlib import Path
+import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-qy8#i&0i5=&!=)ostkumh+=_)&8_avzsxl9upu!(csf_e&hv-6'
 
 DEBUG = True
-
 ALLOWED_HOSTS = []
-
 
 # ✅ 应用配置
 INSTALLED_APPS = [
@@ -18,14 +17,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'corsheaders',   # ✅ 跨域
-    'api',           # ✅ 你的 app
+    'corsheaders',   # ✅ 加一次即可
+    'api',
 ]
-
 
 # ✅ 中间件配置（corsheaders 放最上面）
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',       # ✅ 必须最前
+    'corsheaders.middleware.CorsMiddleware',       # ✅ 放在最前面
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -34,7 +32,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
 
 ROOT_URLCONF = 'backend.urls'
 
@@ -56,14 +53,13 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'backend.wsgi.application'
 
-
-# ✅ 数据库配置（MySQL）
+# ✅ 数据库配置
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'douban',       # 修改为你的数据库名
-        'USER': 'root',         # 你的数据库用户名
-        'PASSWORD': '1234',     # 你的数据库密码
+        'NAME': 'douban',
+        'USER': 'root',
+        'PASSWORD': '1234',
         'HOST': '127.0.0.1',
         'PORT': '3306',
         'OPTIONS': {
@@ -71,7 +67,6 @@ DATABASES = {
         }
     }
 }
-
 
 # ✅ 密码校验
 AUTH_PASSWORD_VALIDATORS = [
@@ -89,32 +84,31 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # ✅ 国际化
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-
 # ✅ 静态资源路径
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [ BASE_DIR / 'static' ]
 
+# ✅ 媒体资源路径（头像上传）
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
+# ✅ 默认主键类型
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
 
 # ✅ 跨域配置
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",  # Vue 项目本地地址
+    'http://localhost:5173',
 ]
 
-# ✅ 允许 Session Cookie 传递跨域（必须有）
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:5173',
+]
+
 SESSION_COOKIE_SAMESITE = 'Lax'
-
-import os
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
-

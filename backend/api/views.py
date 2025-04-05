@@ -20,6 +20,110 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.contrib.auth import get_user_model
 from django.core.files.storage import default_storage
+from django.contrib.auth.decorators import login_required, user_passes_test
+from functools import wraps
+def is_admin(user):
+    print("🧪 当前用户：", user)
+    if not hasattr(user, 'userprofile'):
+        print("❌ 没有 userprofile")
+        return False
+    print("✅ userprofile.role =", user.userprofile.role)
+    return user.userprofile.role == 'admin'
+
+def user_passes_test_json(test_func):
+    def decorator(view_func):
+        @wraps(view_func)
+        def _wrapped_view(request, *args, **kwargs):
+            if not request.user.is_authenticated:
+                return JsonResponse({'error': '未登录'}, status=401)
+            if not test_func(request.user):
+                return JsonResponse({'error': '权限不足'}, status=403)
+            return view_func(request, *args, **kwargs)
+        return _wrapped_view
+    return decorator
+
+
+@csrf_exempt
+@user_passes_test_json(is_admin)
+def user_view(request):
+    if request.method == 'GET':
+        users = User.objects.all().values(
+            'id', 'username', 'email', 'date_joined',
+            'userprofile__role'
+        )
+        return JsonResponse({'users': list(users)})
+
+    elif request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            username = data.get('username')
+            email = data.get('email')
+            password = data.get('password')
+            role = data.get('role', 'user')
+
+            if not username or not password:
+                return JsonResponse({'error': '用户名和密码必填'}, status=400)
+
+            if User.objects.filter(username=username).exists():
+                return JsonResponse({'error': '用户名已存在'}, status=400)
+
+            user = User.objects.create_user(username=username, email=email, password=password)
+            UserProfile.objects.create(user=user, role=role)
+
+            return JsonResponse({'message': '创建成功'})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+@csrf_exempt
+@user_passes_test_json(is_admin)
+def handle_user(request, user_id):
+    from django.contrib.auth.models import User
+    from api.models import UserProfile
+
+    # 删除用户
+    if request.method == 'DELETE':
+        if request.user.id == user_id:
+            return JsonResponse({'error': '不能删除自己'}, status=403)
+        try:
+            User.objects.get(id=user_id).delete()
+            return JsonResponse({'message': '用户已删除'})
+        except User.DoesNotExist:
+            return JsonResponse({'error': '用户不存在'}, status=404)
+
+    # 更新用户
+    elif request.method == 'PUT':
+        try:
+            data = json.loads(request.body)
+            user = User.objects.get(id=user_id)
+
+            # 修改基本信息
+            user.username = data.get('username', user.username)
+            user.email = data.get('email', user.email)
+
+            # ✅ 可选修改密码（如果提供了）
+            new_password = data.get('password')
+            if new_password:
+                user.set_password(new_password)
+
+            user.save()
+
+            # 修改角色
+            profile, _ = UserProfile.objects.get_or_create(user=user)
+            profile.role = data.get('role', profile.role)
+            profile.save()
+
+            return JsonResponse({'message': '更新成功'})
+        except User.DoesNotExist:
+            return JsonResponse({'error': '用户不存在'}, status=404)
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return JsonResponse({'error': str(e)}, status=500)
+
+    # 其他方法不支持
+    else:
+        return JsonResponse({'error': '方法不被允许'}, status=405)
+
 @require_GET
 def search_movies(request):
     keyword = request.GET.get('q', '').strip()
@@ -182,8 +286,6 @@ def user_favorites(request):
 
 
 @csrf_exempt
-# views.py 登录接口
-@csrf_exempt
 @require_POST
 def login_view(request):
     try:
@@ -193,13 +295,20 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user:
             login(request, user)
+            
+            # 获取用户角色（从数据库）
+            try:
+                role = user.userprofile.role
+            except:
+                role = 'user'  # 默认值防止报错
+
             return JsonResponse({
                 'message': '登录成功',
                 'username': user.username,
-                'token': 'mock-token',  # ✅ 可换成 JWT
+                'token': 'mock-token',
                 'user': {
                     'username': user.username,
-                    'role': 'user'  # 或从数据库判断角色字段
+                    'role': role  # ✅ 从数据库真实字段拿到
                 }
             })
         else:

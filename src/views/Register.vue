@@ -21,10 +21,6 @@
             <el-input v-model="form.confirm" type="password" placeholder="确认密码" />
           </el-form-item>
 
-          <el-form-item prop="avatar">
-            <el-input v-model="form.avatar" placeholder="头像 URL（可选）" />
-          </el-form-item>
-
           <el-form-item prop="bio">
             <el-input v-model="form.bio" type="textarea" placeholder="简介（可选）" />
           </el-form-item>
