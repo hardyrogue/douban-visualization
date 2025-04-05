@@ -1,5 +1,5 @@
 <template>
-  <DefaultLayout>
+  <div>
     <div v-if="loading" class="loading-box">
       <img src="https://media.tenor.com/On7kvXhzml4AAAAj/loading-gif.gif" class="loading-gif" />
       <p class="loading-text">正在获取电影信息，请稍候...</p>
@@ -84,7 +84,7 @@
       </div>
 
     </div>
-  </DefaultLayout>
+  </div>
 </template>
 
 <script setup>

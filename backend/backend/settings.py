@@ -113,3 +113,8 @@ CORS_ALLOWED_ORIGINS = [
 
 # ✅ 允许 Session Cookie 传递跨域（必须有）
 SESSION_COOKIE_SAMESITE = 'Lax'
+
+import os
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+

@@ -14,9 +14,12 @@ from api.spider.douban_interface import fetch_movie_brief
 from api.spider.douban_interface import get_movie_review
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.csrf import csrf_exempt
 from .models import UserProfile
 from django.contrib.auth.models import User
+from django.utils.decorators import method_decorator
+from django.views import View
+from django.contrib.auth import get_user_model
+from django.core.files.storage import default_storage
 @require_GET
 def search_movies(request):
     keyword = request.GET.get('q', '').strip()
@@ -140,10 +143,6 @@ def toggle_favorite(request):
         return JsonResponse({"error": str(e)}, status=500)
 
 
-
-
-
-
 @csrf_exempt
 # views.py 登录接口
 @csrf_exempt
@@ -171,32 +170,26 @@ def login_view(request):
         return JsonResponse({'error': str(e)}, status=500)
 
 
-
 @csrf_exempt
 def logout_view(request):
     logout(request)
     return JsonResponse({'message': '已退出登录'})
 
-
-from django.http import JsonResponse
-from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_GET
-
+# ✅ views.py 中保留 current_user
 @require_GET
+@login_required
 def current_user(request):
     user = request.user
-    if not user.is_authenticated:
-        return JsonResponse({'error': '未登录'}, status=401)
-
     try:
-        profile = user.userprofile  # 如果有绑定 UserProfile
+        profile = user.userprofile
+        avatar_url = request.build_absolute_uri(profile.avatar.url) if profile.avatar else ''
         return JsonResponse({
             'username': user.username,
-            'avatar': profile.avatar if profile.avatar else '',
-            'bio': profile.bio if profile.bio else '',
+            'avatar': avatar_url,
+            'bio': profile.bio or '',
             'role': 'admin' if user.is_staff else 'user',
         })
-    except Exception:
+    except UserProfile.DoesNotExist:
         return JsonResponse({
             'username': user.username,
             'avatar': '',
@@ -230,3 +223,35 @@ def register_view(request):
         })
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+    
+
+User = get_user_model()
+
+@method_decorator(csrf_exempt, name='dispatch')
+class ProfileUpdateView(View):
+    def post(self, request):
+        if not request.user.is_authenticated:
+            return JsonResponse({'error': '未登录'}, status=401)
+
+        user = request.user
+        profile, _ = UserProfile.objects.get_or_create(user=user)
+
+        bio = request.POST.get('bio', '')
+        avatar = request.FILES.get('avatar')
+
+        if bio:
+            profile.bio = bio
+
+        if avatar:
+            # 保存到 avatars 文件夹下
+            path = default_storage.save(f'avatars/{user.username}_{avatar.name}', avatar)
+            profile.avatar = path
+
+        profile.save()
+
+        return JsonResponse({
+            'message': '保存成功',
+            'bio': profile.bio,
+            'avatar': request.build_absolute_uri(profile.avatar.url) if profile.avatar else ''
+        })
+

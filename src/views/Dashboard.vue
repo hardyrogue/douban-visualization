@@ -1,5 +1,5 @@
 <template>
-  <DefaultLayout>
+  <div>
     <div class="dashboard-page">
       <h2 style="margin-bottom: 1rem">🎯 数据可视化看板</h2>
 
@@ -10,7 +10,7 @@
         <v-chart class="chart-box" :option="yearOption" autoresize />
       </div>
     </div>
-  </DefaultLayout>
+  </div>
 </template>
 
 <script setup>

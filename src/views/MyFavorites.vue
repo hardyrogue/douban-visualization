@@ -1,5 +1,5 @@
 <template>
-  <DefaultLayout>
+  <div>
     <div class="favorites-page">
       <!-- 返回按钮 -->
       <el-button type="default" icon="ArrowLeft" @click="goBack" plain>
@@ -20,7 +20,7 @@
         />
       </div>
     </div>
-  </DefaultLayout>
+  </div>
 </template>
 
 

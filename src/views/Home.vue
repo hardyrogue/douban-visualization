@@ -1,5 +1,5 @@
 <template>
-  <DefaultLayout>
+  <div>
     <div class="home-container">
       <!-- 顶部搜索栏 -->
       <div class="search-row">
@@ -57,7 +57,7 @@
         </div>
       </div>
     </div>
-  </DefaultLayout>
+  </div>
 </template>
 
 <script setup>

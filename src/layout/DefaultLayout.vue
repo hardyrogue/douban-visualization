@@ -1,8 +1,9 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed,onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from '@/services/axios'
-
+import { eventBus } from '@/eventBus'
+const defaultAvatar = 'https://i.pravatar.cc/100?img=1'  // 默认头像
 const router = useRouter()
 const route = useRoute()
 
@@ -15,10 +16,11 @@ const user = ref({
 const fetchUserInfo = async () => {
   try {
     const res = await axios.get('/auth/user/')
+    console.log('获取用户信息成功', res.data)  // 👈 看看有无 avatar、bio
     user.value = res.data
   } catch (err) {
     console.error('获取用户信息失败', err)
-    router.push('/login')  // token 无效则跳转
+    router.push('/login')
   }
 }
 
@@ -35,8 +37,11 @@ const logout = async () => {
 
 onMounted(() => {
   fetchUserInfo()
+  eventBus.on('user-updated', fetchUserInfo)
 })
-
+onUnmounted(() => {
+  eventBus.off('user-updated', fetchUserInfo)
+})
 const allMenus = [
   { path: '/home', name: '主页' },
   { path: '/dashboard', name: '数据看板' },
@@ -115,7 +120,7 @@ const currentTitle = computed(() => {
 
       <!-- 主内容 -->
       <el-main class="main-content">
-        <slot />
+        <router-view />
       </el-main>
     </el-container>
   </el-container>
