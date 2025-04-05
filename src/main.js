@@ -1,6 +1,6 @@
 import { createApp } from 'vue'
 import App from './App.vue'
-import router from './router'
+import router from './router/index'
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 // ✅ 新版本无需再导入 vue-echarts 的 style.css
