@@ -47,11 +47,22 @@ def user_passes_test_json(test_func):
 @user_passes_test_json(is_admin)
 def user_view(request):
     if request.method == 'GET':
-        users = User.objects.all().values(
-            'id', 'username', 'email', 'date_joined',
-            'userprofile__role'
-        )
-        return JsonResponse({'users': list(users)})
+        keyword = request.GET.get('q', '').strip()
+        page = int(request.GET.get('page', 1))
+        page_size = int(request.GET.get('page_size', 10))
+
+        query = User.objects.all()
+
+        if keyword:
+            query = query.filter(username__icontains=keyword)
+
+        total = query.count()
+        users = query.order_by('-id')[(page - 1) * page_size : page * page_size]
+
+        user_list = list(users.values(
+            'id', 'username', 'email', 'date_joined', 'userprofile__role'
+        ))
+        return JsonResponse({'users': user_list, 'total': total})
 
     elif request.method == 'POST':
         try:
