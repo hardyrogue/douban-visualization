@@ -115,12 +115,24 @@ const isFavorited = ref(false)
 
 const toggleFavorite = async () => {
   try {
-    const res = await axios.post('http://localhost:8000/api/movies/favorite/', { id: route.params.id })
-    isFavorited.value = res.data.status === 'added'
+    // 从 movie.value 获取 title, cover 和 rating
+    const requestData = {
+      id: route.params.id,  // 电影 ID
+      title: movie.value.title,  // 电影标题
+      cover: movie.value.cover,  // 电影封面
+      rating: movie.value.rating || 0  // 评分，默认 0
+    };
+
+    // 打印发送的数据，确保 title 被传递
+    console.log("发送请求数据：", requestData);
+
+    const res = await axios.post('http://localhost:8000/api/movies/favorite/', requestData);
+    isFavorited.value = res.data.status === 'added';
   } catch (err) {
-    console.error('收藏失败：', err)
+    console.error('收藏失败：', err);
   }
 }
+
 
 const doubanLink = computed(() => {
   return `https://movie.douban.com/subject/${route.params.id}/`

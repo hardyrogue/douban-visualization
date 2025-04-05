@@ -130,17 +130,55 @@ def toggle_favorite(request):
 
     try:
         data = json.loads(request.body)
+        print("接收到的数据：", data)  # 打印接收到的数据
         movie_id = data.get("id")
+        movie_title = data.get("title")
+        movie_cover = data.get("cover")
+        movie_rating = data.get("rating", 0)
         user = request.user
 
-        fav, created = Favorite.objects.get_or_create(user=user, douban_id=movie_id)
+        if not movie_title:
+            return JsonResponse({"error": "Title is required"}, status=400)
+
+        fav, created = Favorite.objects.get_or_create(
+            user=user,
+            douban_id=movie_id,
+            defaults={
+                'title': movie_title,
+                'cover': movie_cover,
+                'rating': movie_rating
+            }
+        )
+
         if not created:
             fav.delete()
             return JsonResponse({"message": "取消收藏", "status": "removed"})
         else:
             return JsonResponse({"message": "已收藏", "status": "added"})
+
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
+
+# backend/api/views.py
+
+@login_required
+def user_favorites(request):
+    user = request.user
+    favorites = Favorite.objects.filter(user=user)
+    
+    movie_list = []
+    for fav in favorites:
+        movie_data = {
+            'title': fav.movie.title,
+            'year': fav.movie.year,
+            'cover': fav.movie.cover_url,  # 假设你有电影封面URL
+            'douban_id': fav.movie.douban_id,
+        }
+        movie_list.append(movie_data)
+    
+    return JsonResponse({'movies': movie_list})
+
+
 
 
 @csrf_exempt
@@ -254,4 +292,35 @@ class ProfileUpdateView(View):
             'bio': profile.bio,
             'avatar': request.build_absolute_uri(profile.avatar.url) if profile.avatar else ''
         })
+
+@require_GET
+def favorites_list(request):
+    print("访问了获取收藏的电影列表的接口")  # 这行代码用于调试
+
+    # 获取当前登录用户的收藏
+    user = request.user
+    try:
+        # 查询当前用户的所有收藏
+        favorites = Favorite.objects.filter(user=user)
+
+        # 如果没有收藏
+        if not favorites:
+            return JsonResponse({'message': '没有收藏的电影'}, status=404)
+
+        # 返回收藏的电影的详细信息
+        movie_list = []
+        for fav in favorites:
+            movie_data = {
+                'douban_id': fav.douban_id,  # 电影的豆瓣ID
+                'title': fav.title,          # 电影标题
+                'cover': fav.cover,          # 电影封面
+                'rating': fav.rating,        # 电影评分
+
+            }
+            movie_list.append(movie_data)
+
+        return JsonResponse({'favorites': movie_list})
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
