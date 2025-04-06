@@ -79,7 +79,9 @@ const hotList = [
   '肖申克的救赎', '黑客帝国', '泰坦尼克号', '星际穿越', 
   '毒液', '速度与激情', '无间道', '战狼2', '美丽人生',
   '千与千寻', '这个杀手不太冷', '阿甘正传', '蝙蝠侠：黑暗骑士', '海上钢琴师',
-  '摩托骑士','Mobland','疯狂的麦克斯','传奇','失控的布朗森'
+  '摩托骑士','Mobland','疯狂的麦克斯','传奇','失控的布朗森',
+  '小猪佩奇','小王子','小妇人','小丑','我的世界',
+  '疯狂动物城','The Drop','伦敦路','Taboo','怪奇物语'
 ]
 
 // 点击热门关键词
@@ -112,41 +114,47 @@ watch(
 
 <style scoped>
 .home-container {
-  padding: 2rem;
-  background: #f9f9f9;
+  padding: 2rem 3rem;
+  background: #f5f6fa;
 }
 
 .search-row {
   display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 1rem;
-  max-width: 1200px;
-  margin: 0 auto 1.5rem;
+  margin-bottom: 2rem;
 }
 
 .search-area {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-left: 2rem;
+  margin-bottom: 1rem;
 }
 
 .logo {
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
 }
 
 .hot-tags {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 0.5rem;
-  margin-left: auto;
-  margin-right: 2rem;
 }
 
 .hot-tag {
   cursor: pointer;
-  font-size: 14px;
+  font-size: 13px;
+  border-radius: 20px;
+  padding: 3px 12px;
+  transition: all 0.2s;
+}
+.hot-tag:hover {
+  background-color: #409eff;
+  color: white;
 }
 
 .content-wrapper {
@@ -167,16 +175,17 @@ watch(
 }
 
 .sidebar {
-  width: 200px;
+  width: 220px;
   background: white;
-  padding: 1rem;
+  padding: 1.2rem;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
 }
 
 .sidebar h4 {
   font-size: 16px;
-  margin-bottom: 0.5rem;
+  font-weight: bold;
+  margin-bottom: 0.75rem;
 }
 
 .sidebar ul {
@@ -186,10 +195,14 @@ watch(
 }
 
 .sidebar li {
-  font-size: 15px;
+  font-size: 14px;
   color: #333;
-  margin-bottom: 0.3rem;
+  margin-bottom: 0.4rem;
   cursor: pointer;
+  transition: color 0.2s;
+}
+.sidebar li:hover {
+  color: #409eff;
 }
 
 .loading-box {
@@ -209,5 +222,12 @@ watch(
   color: #409EFF;
   font-weight: bold;
   text-shadow: 0 0 6px #409EFF;
+}
+
+.empty {
+  text-align: center;
+  color: #999;
+  font-size: 16px;
+  padding: 3rem;
 }
 </style>

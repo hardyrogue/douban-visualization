@@ -1,10 +1,10 @@
 <template>
-  <div class="register-container">
-    <div class="register-left">
-      <img src="/src/assets/login-bg.jpg" alt="Register Background" />
+  <div class="login-container">
+    <div class="login-left">
+      <img src="/src/assets/login-bg.jpg" alt="背景图" />
     </div>
-    <div class="register-right">
-      <div class="register-box">
+    <div class="login-right">
+      <div class="login-box">
         <img class="logo" src="/src/assets/logo.png" alt="logo" />
         <h2>注册新用户</h2>
 
@@ -21,18 +21,18 @@
             <el-input v-model="form.confirm" type="password" placeholder="确认密码" />
           </el-form-item>
 
-          <el-form-item prop="bio">
-            <el-input v-model="form.bio" type="textarea" placeholder="简介（可选）" />
+          <el-form-item>
+            <el-input v-model="form.bio" placeholder="简介（可选）" />
           </el-form-item>
-          <el-form-item prop="bio">
-            <el-input v-model="form.email" type="textarea" placeholder="邮箱" />
+          <el-form-item>
+            <el-input v-model="form.email" placeholder="邮箱（可选）" />
           </el-form-item>
 
-          <el-button type="primary" class="register-btn" @click="handleRegister" round block>
+          <el-button type="warning" class="login-btn" @click="handleRegister" round block>
             注册
           </el-button>
 
-          <p class="link-tip">已有账号？<router-link to="/login">立即登录</router-link></p>
+          <p class="link-tip">已有账号？<router-link to="/login">去登录</router-link></p>
         </el-form>
       </div>
     </div>
@@ -51,8 +51,8 @@ const form = reactive({
   username: '',
   password: '',
   confirm: '',
-  avatar: '',
-  bio: ''
+  bio: '',
+  email: ''
 })
 
 const handleRegister = async () => {
@@ -64,18 +64,16 @@ const handleRegister = async () => {
   }
 
   try {
-    // 1️⃣ 先注册
-    const res = await axios.post('/auth/register/', {
+    // 注册
+    await axios.post('/auth/register/', {
       username: form.username,
-      password: form.password
+      password: form.password,
+      bio: form.bio,
+      email: form.email
     })
 
-    // ✅ 确认状态码是否合理
-    if (res.status !== 200 && res.status !== 201) {
-      throw new Error('注册失败')
-    }
 
-    // 2️⃣ 注册成功后自动登录
+    // 自动登录
     const loginRes = await axios.post('/auth/login/', {
       username: form.username,
       password: form.password
@@ -88,32 +86,29 @@ const handleRegister = async () => {
 
     ElMessage.success('注册并登录成功')
     router.push('/home')
-
   } catch (err) {
     console.error('注册失败', err)
     const msg = err?.response?.data?.error || err?.message || '注册失败'
     ElMessage.error(msg)
   }
 }
-
 </script>
 
 <style scoped>
-/* 样式与之前相同 */
-.register-container {
+.login-container {
   display: flex;
   height: 100vh;
   background-color: #2f2f2f;
 }
-.register-left {
+.login-left {
   flex: 1;
 }
-.register-left img {
+.login-left img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
-.register-right {
+.login-right {
   width: 400px;
   background-color: #fff;
   display: flex;
@@ -121,7 +116,7 @@ const handleRegister = async () => {
   align-items: center;
   border-radius: 8px 0 0 8px;
 }
-.register-box {
+.login-box {
   width: 80%;
 }
 .logo {
@@ -129,7 +124,7 @@ const handleRegister = async () => {
   margin: 0 auto 20px;
   display: block;
 }
-.register-btn {
+.login-btn {
   margin-top: 10px;
 }
 .link-tip {

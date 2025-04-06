@@ -20,7 +20,7 @@
     <el-table :data="users" style="width: 100%" stripe border>
       <el-table-column prop="id" label="ID" width="60" />
       <el-table-column prop="username" label="用户名" />
-      <el-table-column prop="email" label="邮箱" />
+      <el-table-column prop="userprofile__email" label="邮箱" />
       <el-table-column prop="userprofile__role" label="角色" />
       <el-table-column label="操作" width="180">
         <template #default="{ row }">
@@ -141,7 +141,7 @@ const openEditDialog = (user) => {
   editingUserId.value = user.id
   form.value = {
     username: user.username,
-    email: user.email || '',
+    email : user.userprofile__email || '',
     password: '',
     role: user.userprofile__role || 'user'
   }

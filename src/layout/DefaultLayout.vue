@@ -81,14 +81,15 @@ const user = ref({
 const fetchUserInfo = async () => {
   try {
     const res = await axios.get('/auth/user/')
-    console.log('获取用户信息成功', res.data)  // 👈 看看有无 avatar、bio
     user.value = res.data
-    localStorage.setItem('role', res.data.role || 'user')
+    role.value = res.data.role || 'user'     // ✅ 动态更新角色
+    localStorage.setItem('role', role.value)
   } catch (err) {
     console.error('获取用户信息失败', err)
     router.push('/login')
   }
 }
+
 
 const logout = async () => {
   try {
@@ -118,13 +119,16 @@ const allMenus = [
 ]
 
 
-const userRole = localStorage.getItem('role') || 'user'
-const menus = allMenus.filter(item => !item.roles || item.roles.includes(userRole))
+const role = ref(localStorage.getItem('role') || 'user')
+const menus = computed(() => {
+  return allMenus.filter(item => !item.roles || item.roles.includes(role.value))
+})
 
 const currentTitle = computed(() => {
-  const current = menus.find(m => m.path === route.path)
+  const current = menus.value.find(m => m.path === route.path)  // ✅ 正确
   return current ? current.name : ''
 })
+
 </script>
 
 <style scoped>

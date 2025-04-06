@@ -1,17 +1,15 @@
 <template>
-  <el-card class="movie-card clickable" shadow="hover" @click="goDetail">
+  <el-card class="movie-card" shadow="hover" @click="goDetail">
     <img
-  :src="movie.cover ? `http://localhost:8000/api/image-proxy/?url=${encodeURIComponent(movie.cover)}` : defaultCover"
-  @error="e => e.target.src = defaultCover"
-  class="cover"
-/>
-
+      :src="movie.cover ? `http://localhost:8000/api/image-proxy/?url=${encodeURIComponent(movie.cover)}` : defaultCover"
+      @error="e => e.target.src = defaultCover"
+      class="cover"
+    />
 
     <div class="info">
-      <h3 class="title">{{ movie.title }}</h3>
-      <p>年份：{{ movie.year }}</p>
+      <h3 class="title" :title="movie.title">{{ movie.title }}</h3>
+      <p class="year">📅 {{ movie.year || '年份未知' }}</p>
       <p class="subtitle">{{ movie.sub_title || '暂无英文标题' }}</p>
-
     </div>
   </el-card>
 </template>
@@ -29,43 +27,55 @@ const goDetail = () => {
   router.push(`/movie/${props.movie.id}`)
 }
 
-const defaultCover = 'https://via.placeholder.com/200x300?text=No+Image'  // ✅ 兜底图
+const defaultCover = 'https://via.placeholder.com/200x300?text=No+Image'
 </script>
-
 
 <style scoped>
 .movie-card {
-  width: 200px;
-  padding: 10px;
+  width: 220px;
+  padding: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.25s ease-in-out;
 }
+.movie-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
 .cover {
   width: 100%;
-  height: 280px;
+  height: 300px;
   object-fit: cover;
-  border-radius: 6px;
-  margin-bottom: 10px;
+  border-bottom: 1px solid #f0f0f0;
+  transition: transform 0.3s ease;
+}
+.movie-card:hover .cover {
+  transform: scale(1.03);
 }
 
 .info {
-  text-align: left;
+  padding: 12px;
+  background: #fff;
 }
+
 .title {
-  margin: 0 0 6px;
   font-size: 16px;
-  font-weight: bold;
+  font-weight: 600;
+  color: #333;
+  line-height: 1.4;
+  margin-bottom: 4px;
 }
-.clickable {
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-.clickable:hover {
-  transform: translateY(-2px);
+
+.year {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 4px;
 }
 
 .subtitle {
-  font-size: 13px;
+  font-size: 12px;
   color: #999;
-  margin-top: 4px;
 }
-
 </style>

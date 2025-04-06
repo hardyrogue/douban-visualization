@@ -60,7 +60,7 @@ def user_view(request):
         users = query.order_by('-id')[(page - 1) * page_size : page * page_size]
 
         user_list = list(users.values(
-            'id', 'username', 'email', 'date_joined', 'userprofile__role'
+            'id', 'username', 'userprofile__email', 'date_joined', 'userprofile__role'
         ))
         return JsonResponse({'users': user_list, 'total': total})
 
@@ -78,8 +78,8 @@ def user_view(request):
             if User.objects.filter(username=username).exists():
                 return JsonResponse({'error': '用户名已存在'}, status=400)
 
-            user = User.objects.create_user(username=username, email=email, password=password)
-            UserProfile.objects.create(user=user, role=role)
+            user = User.objects.create_user(username=username, password=password)
+            UserProfile.objects.create(user=user, role=role, email=email)
 
             return JsonResponse({'message': '创建成功'})
         except Exception as e:
@@ -109,7 +109,7 @@ def handle_user(request, user_id):
 
             # 修改基本信息
             user.username = data.get('username', user.username)
-            user.email = data.get('email', user.email)
+
 
             # ✅ 可选修改密码（如果提供了）
             new_password = data.get('password')
@@ -121,6 +121,7 @@ def handle_user(request, user_id):
             # 修改角色
             profile, _ = UserProfile.objects.get_or_create(user=user)
             profile.role = data.get('role', profile.role)
+            profile.email = data.get('email', profile.email)
             profile.save()
 
             return JsonResponse({'message': '更新成功'})
@@ -362,11 +363,12 @@ def current_user(request):
 @csrf_exempt
 @require_POST
 def register_view(request):
-    import json
     try:
         data = json.loads(request.body)
         username = data.get('username')
         password = data.get('password')
+        bio = data.get('bio', '')
+        email = data.get('email', '')
 
         if not username or not password:
             return JsonResponse({'error': '用户名和密码不能为空'}, status=400)
@@ -374,16 +376,22 @@ def register_view(request):
         if User.objects.filter(username=username).exists():
             return JsonResponse({'error': '用户名已存在'}, status=409)
 
+        # 创建 User（可以不写 email）
         user = User.objects.create_user(username=username, password=password)
+
+        # ✅ 创建对应的 UserProfile（存 email 和 bio）
+        UserProfile.objects.create(user=user, bio=bio, email=email)
+
         return JsonResponse({
             'message': '注册成功并已登录',
             'username': user.username,
-            'token': 'mock-token',  # 或你用 JWT 的 token
+            'token': 'mock-token',
             'role': 'user'
         })
+
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
-    
+
 
 User = get_user_model()
 
@@ -404,6 +412,7 @@ class ProfileUpdateView(View):
             profile.bio = bio
         if email:
             profile.email = email
+            print("📨 前端传来的邮箱：", email)
         if avatar:
             # 保存到 avatars 文件夹下
             path = default_storage.save(f'avatars/{user.username}_{avatar.name}', avatar)
