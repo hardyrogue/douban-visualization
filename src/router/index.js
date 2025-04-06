@@ -4,7 +4,6 @@ import DefaultLayout from '@/layout/DefaultLayout.vue'
 import Login from '../views/Login.vue'
 import Register from '../views/Register.vue'
 import Home from '../views/Home.vue'
-import Dashboard from '../views/Dashboard.vue'
 import MyFavorites from '../views/MyFavorites.vue'
 import UserProfile from '../views/UserProfile.vue'
 import MovieDetail from '../views/MovieDetail.vue'
@@ -16,7 +15,6 @@ const routes = [
     children: [
       { path: '', redirect: '/home' },
       { path: 'home', component: Home },
-      { path: 'dashboard', component: Dashboard, meta: { requiresAuth: true } },
       { path: 'favorites', component: MyFavorites, meta: { requiresAuth: true } },
       { path: 'profile', name: 'UserProfile', component: UserProfile, meta: { requiresAuth: true } },
       { path: 'movie/:id', component: MovieDetail },
