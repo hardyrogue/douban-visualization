@@ -1,18 +1,22 @@
 <template>
-  <div>
-    <!-- 🔍 搜索栏 + ➕ 新增按钮 -->
+  <div class="user-management-container">
+    <!-- 返回按钮 -->
+    <el-button class="back-btn" link type="primary" icon="ArrowLeft" @click="goBack">
+      返回
+    </el-button>
+
+    <!-- 控制栏：搜索 + 新增 -->
     <div class="controls">
       <el-input
         v-model="searchKeyword"
         placeholder="搜索用户名"
-        style="width: 200px"
         clearable
         @input="handleSearch"
       />
       <el-button type="primary" @click="openCreateDialog">➕ 新增用户</el-button>
     </div>
 
-    <!-- 👥 用户表格 -->
+    <!-- 表格 -->
     <el-table :data="users" style="width: 100%" stripe border>
       <el-table-column prop="id" label="ID" width="60" />
       <el-table-column prop="username" label="用户名" />
@@ -30,9 +34,8 @@
       </el-table-column>
     </el-table>
 
-    <!-- 📄 分页 -->
+    <!-- 分页 -->
     <el-pagination
-      style="margin-top: 1rem"
       layout="prev, pager, next, jumper, ->, total"
       :current-page="pagination.page"
       :page-size="pagination.pageSize"
@@ -40,7 +43,7 @@
       @current-change="handlePageChange"
     />
 
-    <!-- ✏️ 弹窗 -->
+    <!-- 弹窗表单 -->
     <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑用户' : '新增用户'" width="400px">
       <el-form :model="form" label-width="80px">
         <el-form-item label="用户名">
@@ -56,7 +59,11 @@
           </el-select>
         </el-form-item>
         <el-form-item :label="isEdit ? '新密码' : '密码'">
-          <el-input v-model="form.password" type="password" :placeholder="isEdit ? '如需修改请填写' : '请输入密码'" />
+          <el-input
+            v-model="form.password"
+            type="password"
+            :placeholder="isEdit ? '如需修改请填写' : '请输入密码'"
+          />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -71,16 +78,17 @@
 import { ref, onMounted } from 'vue'
 import axios from '@/services/axios'
 import { ElMessage } from 'element-plus'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const users = ref([])
 const dialogVisible = ref(false)
 const isEdit = ref(false)
 const editingUserId = ref(null)
 const searchKeyword = ref('')
-
 const pagination = ref({
   page: 1,
-  pageSize: 10,
+  pageSize: 5,
   total: 0,
 })
 
@@ -90,6 +98,10 @@ const form = ref({
   password: '',
   role: 'user',
 })
+
+const goBack = () => {
+  router.back()
+}
 
 const fetchUsers = async () => {
   const res = await axios.get('http://localhost:8000/api/users/', {
@@ -108,8 +120,8 @@ const handleSearch = () => {
   fetchUsers()
 }
 
-const handlePageChange = (newPage) => {
-  pagination.value.page = newPage
+const handlePageChange = (page) => {
+  pagination.value.page = page
   fetchUsers()
 }
 
@@ -150,11 +162,9 @@ const handleSubmit = async () => {
       await axios.post('http://localhost:8000/api/users/', form.value)
       ElMessage.success('创建成功')
     }
-
     dialogVisible.value = false
     fetchUsers()
   } catch (err) {
-    console.error(err)
     ElMessage.error(err.response?.data?.error || '操作失败')
   }
 }
@@ -173,14 +183,53 @@ onMounted(fetchUsers)
 </script>
 
 <style scoped>
-.user-list {
-  padding: 1rem;
+.user-management-container {
+  position: relative;
+  max-width: 960px;
+  margin: 2rem auto;
+  background: #fff;
+  padding: 2.5rem 2rem 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 }
 
+/* 返回按钮（容器左上角） */
+.back-btn {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  font-size: 14px;
+  padding: 4px 8px;
+  z-index: 10;
+}
+
+/* 控制区域：搜索框 + 新增按钮 */
 .controls {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   margin-bottom: 1rem;
-  gap: 1rem;
+  margin-top: 1rem; /* 避开返回按钮 */
+}
+
+.controls .el-input {
+  width: 240px;
+}
+
+/* 表格样式 */
+.el-table {
+  border-radius: 8px;
+  overflow: hidden;
+  font-size: 14px;
+}
+
+.el-table .el-button + .el-button {
+  margin-left: 0.5rem;
+}
+
+/* 分页居中 */
+.el-pagination {
+  justify-content: center;
+  margin-top: 1.5rem;
 }
 </style>
