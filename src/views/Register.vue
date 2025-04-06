@@ -24,6 +24,9 @@
           <el-form-item prop="bio">
             <el-input v-model="form.bio" type="textarea" placeholder="简介（可选）" />
           </el-form-item>
+          <el-form-item prop="bio">
+            <el-input v-model="form.email" type="textarea" placeholder="邮箱" />
+          </el-form-item>
 
           <el-button type="primary" class="register-btn" @click="handleRegister" round block>
             注册

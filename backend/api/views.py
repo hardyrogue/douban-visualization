@@ -345,6 +345,7 @@ def current_user(request):
             'username': user.username,
             'avatar': avatar_url,
             'bio': profile.bio or '',
+            'email': profile.email or '',
             'role': 'admin' if user.is_staff else 'user',
         })
     except UserProfile.DoesNotExist:
@@ -352,6 +353,7 @@ def current_user(request):
             'username': user.username,
             'avatar': '',
             'bio': '',
+            'email':  '',
             'role': 'admin' if user.is_staff else 'user',
         })
 
@@ -395,11 +397,13 @@ class ProfileUpdateView(View):
         profile, _ = UserProfile.objects.get_or_create(user=user)
 
         bio = request.POST.get('bio', '')
+        email = request.POST.get('email', '')
         avatar = request.FILES.get('avatar')
 
         if bio:
             profile.bio = bio
-
+        if email:
+            profile.email = email
         if avatar:
             # 保存到 avatars 文件夹下
             path = default_storage.save(f'avatars/{user.username}_{avatar.name}', avatar)
@@ -410,6 +414,7 @@ class ProfileUpdateView(View):
         return JsonResponse({
             'message': '保存成功',
             'bio': profile.bio,
+            'email': profile.email,
             'avatar': request.build_absolute_uri(profile.avatar.url) if profile.avatar else ''
         })
 
@@ -443,4 +448,31 @@ def favorites_list(request):
 
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+
+@csrf_exempt
+@require_POST
+@login_required
+def change_password(request):
+    try:
+        data = json.loads(request.body)
+        old_password = data.get('old_password')
+        new_password = data.get('new_password')
+        user = request.user
+
+        if not old_password or not new_password:
+            return JsonResponse({'error': '请输入原密码和新密码'}, status=400)
+
+        if not user.check_password(old_password):
+            return JsonResponse({'error': '原密码错误'}, status=403)
+
+        if old_password == new_password:
+            return JsonResponse({'error': '新密码不能与原密码相同'}, status=400)
+
+        user.set_password(new_password)
+        user.save()
+
+        return JsonResponse({'message': '密码修改成功'})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
 

@@ -21,6 +21,17 @@
         <el-form-item label="个人简介">
           <el-input v-model="form.bio" placeholder="输入个人简介" />
         </el-form-item>
+        <el-form-item label="个人邮箱">
+          <el-input v-model="form.email" placeholder="输入邮箱" />
+        </el-form-item>
+
+        <el-form-item label="原密码">
+          <el-input v-model="form.old_password" type="password" placeholder="请输入原密码(留空不修改)" />
+        </el-form-item>
+
+        <el-form-item label="新密码">
+          <el-input v-model="form.new_password" type="password" placeholder="请输入新密码" />
+        </el-form-item>
 
         <el-form-item>
           <el-button type="primary" @click="handleSave">保存</el-button>
@@ -40,16 +51,20 @@ import { eventBus } from '@/eventBus'
 
 const router = useRouter()
 
-const form = ref({
-  bio: '',
-})
 const avatarFile = ref(null)
 const avatarPreview = ref('')
+const form = ref({
+  bio: '',
+  email: '',
+  old_password: '',
+  new_password: ''
+})
 
 const getProfileInfo = async () => {
   try {
     const res = await axios.get('/auth/user/')
     form.value.bio = res.data.bio || ''
+    form.value.email = res.data.email || ''
     avatarPreview.value = res.data.avatar || ''
   } catch (err) {
     ElMessage.error('获取用户信息失败')
@@ -57,7 +72,7 @@ const getProfileInfo = async () => {
   }
 }
 
-onMounted(async () => {
+onMounted(() => {
   getProfileInfo()
 })
 
@@ -72,24 +87,43 @@ const handleAvatarChange = (file) => {
 }
 
 const handleSave = async () => {
-  const formData = new FormData()
-  formData.append('bio', form.value.bio)
-  if (avatarFile.value) {
-    formData.append('avatar', avatarFile.value)
+  // ⚠️ 新旧密码不能相同
+  if (form.value.old_password && form.value.new_password && form.value.old_password === form.value.new_password) {
+    ElMessage.warning('新密码不能与原密码相同')
+    return
   }
 
   try {
+    // ✅ 基本信息 + 头像
+    const formData = new FormData()
+    formData.append('bio', form.value.bio)
+    formData.append('email', form.value.email)
+    if (avatarFile.value) {
+      formData.append('avatar', avatarFile.value)
+    }
+
     await axios.post('/auth/profile/update/', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
+      headers: { 'Content-Type': 'multipart/form-data' }
     })
+
+    // ✅ 修改密码（前提是填写了）
+    if (form.value.old_password && form.value.new_password) {
+      await axios.post('/auth/change-password/', {
+        old_password: form.value.old_password,
+        new_password: form.value.new_password
+      })
+    }
+
     ElMessage.success('保存成功')
     eventBus.emit('user-updated')
+
+    form.value.old_password = ''
+    form.value.new_password = ''
   } catch (err) {
-    ElMessage.error('保存失败')
+    ElMessage.error(err.response?.data?.error || '保存失败')
   }
 }
+
 </script>
 
 <style scoped>
