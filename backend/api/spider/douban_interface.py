@@ -133,12 +133,10 @@ def get_movie_review_by_url(url):
     res = requests.get(url, headers=headers, cookies=cookies, timeout=8)
     tree = etree.HTML(res.text)
 
-    # 获取评论列表
     comment_list = tree.xpath('//div[@class="comment-item"]')
-    if len(comment_list) == 0:
+    if not comment_list:
         return comments_dict
-    
-    # 解析评论内容
+
     for comment_div in comment_list:
         try:
             name = comment_div.xpath('.//span[@class="comment-info"]/a/text()')[0].strip()
@@ -148,15 +146,25 @@ def get_movie_review_by_url(url):
             content = comment_div.xpath('.//p[@class="comment-content"]/span/text()')[0].strip()
         except:
             continue
-        upvote = comment_div.xpath('.//span[@class="votes vote-count"]/text()')[0].strip()
-        time = comment_div.xpath('.//span[@class="comment-time"]/@title')[0]
-        
-        # 获取评分
+        try:
+            upvote = int(comment_div.xpath('.//span[@class="votes vote-count"]/text()')[0].strip())
+        except:
+            upvote = 0
+        try:
+            time = comment_div.xpath('.//span[@class="comment-time"]/@title')[0]
+        except:
+            time = ''
+
         try:
             star_attribute = comment_div.xpath('.//span[contains(@class,"rating")]/@class')[0]
-            stars = re.search(r'\d+', star_attribute).group()[0]
+            stars_raw = int(re.search(r'\d+', star_attribute).group())
+            if 10 <= stars_raw <= 50:
+                stars = stars_raw // 10
+            else:
+                stars = 0
         except:
             stars = 0
+
 
         comments_dict.append({
             'name': name,
@@ -167,7 +175,6 @@ def get_movie_review_by_url(url):
         })
 
     return comments_dict
-
 
 # 获取电影评论
 def get_movie_review(movie_id):

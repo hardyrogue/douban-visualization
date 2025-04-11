@@ -58,7 +58,36 @@
         <h3>📊 评分分布</h3>
         <v-chart :option="chartOptions" autoresize style="width: 100%; height: 300px;" />
       </div>
-
+      <!-- 评分统计分析 -->
+<div class="card" v-if="movie.rating_stats">
+  <h3>📈 评分统计分析</h3>
+  <ul class="stats-list">
+    <li><strong>平均评分：</strong>{{ movie.rating_stats.average || '暂无数据' }}</li>
+    <li><strong>中位数：</strong>{{ movie.rating_stats.median || '暂无数据' }}</li>
+    <li><strong>众数：</strong>{{ movie.rating_stats.mode || '暂无数据' }}</li>
+    <li><strong>标准差：</strong>{{ movie.rating_stats.std_dev || '暂无数据' }}</li>
+    <li>
+      <strong>评分偏态：</strong>
+      <span v-if="movie.rating_stats.skewness != null">
+        {{
+          movie.rating_stats.skewness > 0
+            ? '偏向高分（正偏）'
+            : movie.rating_stats.skewness < 0
+            ? '偏向低分（负偏）'
+            : '对称分布'
+        }}
+        （Skew = {{ movie.rating_stats.skewness }}）
+      </span>
+      <span v-else>暂无数据</span>
+    </li>
+    
+  </ul>
+</div>
+<!-- 评分趋势图 -->
+<div class="card" v-if="movie.rating_trend && Object.keys(movie.rating_trend).length > 0">
+  <h3>📉 评分趋势图（按年份）</h3>
+  <v-chart :option="trendChartOptions" autoresize style="width: 100%; height: 300px;" />
+</div>
       <!-- 用户评论 -->
       <div class="card">
         <h3>🔥 热门短评</h3>
@@ -91,12 +120,11 @@ import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
 import VChart from 'vue-echarts'
 import { use } from 'echarts/core'
-import { BarChart } from 'echarts/charts'
 import { GridComponent, TooltipComponent, TitleComponent } from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
-
+import { BarChart, LineChart } from 'echarts/charts'  // ✅ 添加 LineChart
 // 注册 ECharts 图表组件
-use([BarChart, GridComponent, TooltipComponent, TitleComponent, CanvasRenderer])
+use([BarChart, LineChart, GridComponent, TooltipComponent, TitleComponent, CanvasRenderer])
 
 // 路由相关
 const route = useRoute()
@@ -105,6 +133,7 @@ const router = useRouter()
 // 电影详情和状态变量
 const movie = ref({})
 const chartOptions = ref(null)
+const trendChartOptions = ref(null)  // ✅ 加在这里
 const loading = ref(true)
 const loadingMore = ref(false)
 const comments = ref([])
@@ -183,6 +212,38 @@ onMounted(async () => {
         }
       }]
     }
+    // ✅ 紧接着加趋势图逻辑
+const trend = res.data.rating_trend || {}
+if (Object.keys(trend).length > 0) {
+  trendChartOptions.value = {
+    title: { text: '', left: 'center' },
+    tooltip: { trigger: 'axis' },
+    xAxis: {
+      type: 'category',
+      data: Object.keys(trend),
+      boundaryGap: false
+    },
+    yAxis: {
+      type: 'value',
+      min: 1,
+      max: 5
+    },
+    series: [{
+      type: 'line',
+      data: Object.values(trend),
+      smooth: true,
+      symbol: 'circle',
+      areaStyle: {
+        color: 'rgba(59,130,246,0.2)'
+      },
+      lineStyle: {
+        color: '#3b82f6',
+        width: 3
+      }
+    }]
+  }
+}
+
     await loadComments()
   } catch (err) {
     console.error('详情加载失败：', err)
@@ -289,5 +350,18 @@ onMounted(async () => {
 .load-more {
   text-align: center;
   margin-top: 1rem;
+}
+.stats-list {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0 0;
+}
+.stats-list li {
+  margin-bottom: 8px;
+  font-size: 15px;
+  color: #333;
+}
+.stats-list strong {
+  color: #409EFF;
 }
 </style>
